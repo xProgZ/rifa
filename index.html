@@ -1,94 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Rifa Solidária</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       background: #f4f7fb;
+      padding-bottom: 40px;
     }
-    h1 {
-      color: #333;
-      margin-top: 20px;
+    h1 { color:#333; margin-top:18px; }
+    .contador { font-size:16px; font-weight:700; color:#444; margin:8px 0 12px; }
+    .busca { margin: 12px 0; }
+    input[type="number"] {
+      padding:8px; width:80px; font-size:16px; text-align:center;
+      border:1px solid #ccc; border-radius:6px; margin-right:6px;
     }
-    .contador {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #444;
+    .botoes { margin:12px 0 18px; }
+    button {
+      padding:10px 14px; border:none; border-radius:6px;
+      background:#007bff; color:#fff; font-size:14px; cursor:pointer; margin:6px;
     }
+    button:hover { background:#0056b3; }
     .grid {
-      display: grid;
+      display:grid;
       grid-template-columns: repeat(10, 1fr);
-      gap: 8px;
-      max-width: 600px;
-      margin: 20px auto;
+      gap:8px;
+      max-width:760px;
+      margin: 0 auto;
+      padding: 0 10px;
     }
     .numero {
-      padding: 12px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-weight: bold;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding:10px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:44px;
+      word-break:break-word;
     }
-    .numero:hover {
-      background: #e0f0ff;
-    }
-    .selecionado {
-      background: #ff4d4d;
-      color: white;
-      cursor: not-allowed;
-    }
-    .botoes {
-      margin: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin: 5px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .busca {
-      margin: 15px 0;
-    }
-    input {
-      padding: 8px;
-      width: 80px;
-      font-size: 16px;
-      text-align: center;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-right: 5px;
-    }
+    .numero:hover { background:#e9f4ff; }
+    .selecionado { background:#ff5252; color:#fff; }
     .highlight {
       animation: piscar 1s ease-in-out 3;
       border: 2px solid #007bff !important;
     }
     @keyframes piscar {
-      0%, 100% { background: yellow; }
+      0%,100% { background: #fff59d; }
       50% { background: #fff; }
+    }
+    @media (max-width:600px) {
+      .grid { grid-template-columns: repeat(5, 1fr); max-width: 360px; }
     }
   </style>
 </head>
 <body>
   <h1>🎟️ Rifa Solidária para tratamento do Sr. Onofre</h1>
-  
+
   <div class="contador" id="contador">Selecionados: 0 / 200</div>
 
   <div class="busca">
@@ -97,101 +72,138 @@
   </div>
 
   <div class="botoes">
-    <button id="exportar">📂 Exportar Seleções</button>
+    <button id="exportar">📂 Exportar Seleções (TXT)</button>
     <button id="limpar">🔄 Limpar Seleções</button>
   </div>
 
   <div class="grid" id="tabela-numeros"></div>
 
   <script>
-    const tabela = document.getElementById("tabela-numeros");
-    const btnLimpar = document.getElementById("limpar");
-    const btnExportar = document.getElementById("exportar");
-    const contador = document.getElementById("contador");
-    const btnBuscar = document.getElementById("buscar");
-    const inputBusca = document.getElementById("numeroBusca");
+    const tabela = document.getElementById('tabela-numeros');
+    const contador = document.getElementById('contador');
+    const btnBuscar = document.getElementById('buscar');
+    const inputBusca = document.getElementById('numeroBusca');
+    const btnExportar = document.getElementById('exportar');
+    const btnLimpar = document.getElementById('limpar');
 
-    // Carrega dados já salvos (agora é objeto: { numero: nome })
-    let selecionados = JSON.parse(localStorage.getItem("rifaSelecionados")) || {};
+    // objeto: { "1": "Nome", "15": "Fulano" }
+    let selecionados = JSON.parse(localStorage.getItem('rifaSelecionados')) || {};
 
-    // Atualiza contador
     function atualizarContador() {
       contador.textContent = `Selecionados: ${Object.keys(selecionados).length} / 200`;
     }
 
-    atualizarContador();
-
-    // Cria os números
+    // Gera grid
     for (let i = 1; i <= 200; i++) {
-      const num = document.createElement("div");
-      num.classList.add("numero");
-      num.textContent = i;
-      num.id = "num-" + i;
-
-      // Se já estava salvo, marca como selecionado
-      if (selecionados[i]) {
-        num.classList.add("selecionado");
-        num.textContent = i + " - " + selecionados[i];
+      const div = document.createElement('div');
+      div.className = 'numero';
+      div.id = 'num-' + i;
+      div.dataset.n = i; // guarda número original
+      // se já selecionado, mostra "i - nome"
+      if (selecionados[String(i)]) {
+        const nome = selecionados[String(i)];
+        div.classList.add('selecionado');
+        div.textContent = `${i} - ${nome}`;
+        div.title = `Comprado por: ${nome}`;
+      } else {
+        div.textContent = i;
       }
 
-      num.addEventListener("click", () => {
-        if (!num.classList.contains("selecionado")) {
+      // clique: se livre -> pedir nome; se ocupado -> editar / remover
+      div.addEventListener('click', () => {
+        const key = String(i);
+        if (!div.classList.contains('selecionado')) {
           const nome = prompt(`Digite o nome da pessoa que comprou o nº ${i}:`);
-          if (nome && nome.trim() !== "") {
-            num.classList.add("selecionado");
-            num.textContent = i + " - " + nome;
-            selecionados[i] = nome.trim();
-            localStorage.setItem("rifaSelecionados", JSON.stringify(selecionados));
+          if (nome === null) return; // cancelou
+          const trimmed = nome.trim();
+          if (trimmed === '') {
+            alert('Nome vazio. Operação cancelada.');
+            return;
+          }
+          selecionados[key] = trimmed;
+          localStorage.setItem('rifaSelecionados', JSON.stringify(selecionados));
+          div.classList.add('selecionado');
+          div.textContent = `${i} - ${trimmed}`;
+          div.title = `Comprado por: ${trimmed}`;
+          atualizarContador();
+        } else {
+          // editar ou remover: prompt pré-preenchido com nome atual
+          const atual = selecionados[key] || '';
+          const novo = prompt(`Editar nome do nº ${i} (deixe vazio para REMOVER):`, atual);
+          if (novo === null) return; // cancelou
+          const trimmed = novo.trim();
+          if (trimmed === '') {
+            // remover (com confirmação)
+            if (confirm(`Deseja remover o registro do número ${i}?`)) {
+              delete selecionados[key];
+              localStorage.setItem('rifaSelecionados', JSON.stringify(selecionados));
+              div.classList.remove('selecionado');
+              div.textContent = i;
+              div.title = '';
+              atualizarContador();
+            }
+          } else {
+            // atualizar nome
+            selecionados[key] = trimmed;
+            localStorage.setItem('rifaSelecionados', JSON.stringify(selecionados));
+            div.textContent = `${i} - ${trimmed}`;
+            div.title = `Comprado por: ${trimmed}`;
             atualizarContador();
           }
         }
       });
 
-      tabela.appendChild(num);
+      tabela.appendChild(div);
     }
 
-    // Botão para limpar seleções
-    btnLimpar.addEventListener("click", () => {
-      if (confirm("Tem certeza que deseja limpar todas as seleções?")) {
-        localStorage.removeItem("rifaSelecionados");
-        selecionados = {};
-        location.reload();
-      }
-    });
+    atualizarContador();
 
-    // Buscar número digitado
-    btnBuscar.addEventListener("click", () => {
-      const valor = parseInt(inputBusca.value);
-      if (valor >= 1 && valor <= 200) {
-        const numeroDiv = document.getElementById("num-" + valor);
-        if (numeroDiv) {
-          numeroDiv.scrollIntoView({ behavior: "smooth", block: "center" });
-          numeroDiv.classList.add("highlight");
-          setTimeout(() => numeroDiv.classList.remove("highlight"), 3000);
-        }
+    // Buscar número
+    btnBuscar.addEventListener('click', () => {
+      const val = parseInt(inputBusca.value);
+      if (Number.isInteger(val) && val >= 1 && val <= 200) {
+        const el = document.getElementById('num-' + val);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 3000);
       } else {
-        alert("Digite um número válido entre 1 e 200!");
+        alert('Digite um número válido entre 1 e 200!');
       }
     });
 
-    // Exportar números selecionados para TXT
-    btnExportar.addEventListener("click", () => {
-      if (Object.keys(selecionados).length === 0) {
-        alert("Nenhum número foi selecionado!");
+    // Exportar para TXT (nº - nome, ordenado)
+    btnExportar.addEventListener('click', () => {
+      const keys = Object.keys(selecionados);
+      if (keys.length === 0) {
+        alert('Nenhum número foi selecionado!');
         return;
       }
-
-      let linhas = ["Números selecionados:\n"];
-      for (const [numero, nome] of Object.entries(selecionados).sort((a,b) => a[0]-b[0])) {
-        linhas.push(`Nº ${numero} - ${nome}`);
+      const entries = keys.map(k => [Number(k), selecionados[k]])
+                          .sort((a,b) => a[0] - b[0]);
+      const linhas = ['Números selecionados:', ''];
+      for (const [num, nome] of entries) {
+        linhas.push(`Nº ${num} - ${nome}`);
       }
-
-      const conteudo = linhas.join("\n");
-      const blob = new Blob([conteudo], { type: "text/plain;charset=utf-8" });
-      const link = document.createElement("a");
+      const conteudo = linhas.join('\n');
+      const blob = new Blob([conteudo], { type:'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = "rifa_selecionados.txt";
+      link.download = 'rifa_selecionados.txt';
       link.click();
+    });
+
+    // Limpar seleções
+    btnLimpar.addEventListener('click', () => {
+      if (!confirm('Tem certeza que deseja limpar TODAS as seleções?')) return;
+      selecionados = {};
+      localStorage.removeItem('rifaSelecionados');
+      document.querySelectorAll('.numero').forEach(n => {
+        n.classList.remove('selecionado');
+        n.title = '';
+        n.textContent = n.dataset.n;
+      });
+      atualizarContador();
     });
   </script>
 </body>
