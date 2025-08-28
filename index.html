@@ -64,10 +64,10 @@
 <body>
   <h1>🎟️ Rifa Solidária para tratamento do Sr. Onofre</h1>
 
-  <div class="contador" id="contador">Selecionados: 0 / 200</div>
+  <div class="contador" id="contador">Selecionados: 0 / 250</div>
 
   <div class="busca">
-    <input type="number" id="numeroBusca" min="1" max="200" placeholder="Nº">
+    <input type="number" id="numeroBusca" min="1" max="250" placeholder="Nº">
     <button id="buscar">🔍 Buscar</button>
   </div>
 
@@ -90,11 +90,11 @@
     let selecionados = JSON.parse(localStorage.getItem('rifaSelecionados')) || {};
 
     function atualizarContador() {
-      contador.textContent = `Selecionados: ${Object.keys(selecionados).length} / 200`;
+      contador.textContent = `Selecionados: ${Object.keys(selecionados).length} / 250`;
     }
 
     // Gera grid
-    for (let i = 1; i <= 200; i++) {
+    for (let i = 1; i <= 250; i++) {
       const div = document.createElement('div');
       div.className = 'numero';
       div.id = 'num-' + i;
@@ -161,14 +161,14 @@
     // Buscar número
     btnBuscar.addEventListener('click', () => {
       const val = parseInt(inputBusca.value);
-      if (Number.isInteger(val) && val >= 1 && val <= 200) {
+      if (Number.isInteger(val) && val >= 1 && val <= 250) {
         const el = document.getElementById('num-' + val);
         if (!el) return;
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.classList.add('highlight');
         setTimeout(() => el.classList.remove('highlight'), 3000);
       } else {
-        alert('Digite um número válido entre 1 e 200!');
+        alert('Digite um número válido entre 1 e 250!');
       }
     });
 
