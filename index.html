@@ -74,6 +74,7 @@
   <div class="botoes">
     <button id="exportar">📂 Exportar Seleções (TXT)</button>
     <button id="limpar">🔄 Limpar Seleções</button>
+    <button onclick="sortearGanhador()">🎲 Sortear Ganhador</button>
   </div>
 
   <div class="grid" id="tabela-numeros"></div>
@@ -86,7 +87,6 @@
     const btnExportar = document.getElementById('exportar');
     const btnLimpar = document.getElementById('limpar');
 
-    // objeto: { "1": "Nome", "15": "Fulano" }
     let selecionados = JSON.parse(localStorage.getItem('rifaSelecionados')) || {};
 
     function atualizarContador() {
@@ -98,8 +98,7 @@
       const div = document.createElement('div');
       div.className = 'numero';
       div.id = 'num-' + i;
-      div.dataset.n = i; // guarda número original
-      // se já selecionado, mostra "i - nome"
+      div.dataset.n = i;
       if (selecionados[String(i)]) {
         const nome = selecionados[String(i)];
         div.classList.add('selecionado');
@@ -109,12 +108,11 @@
         div.textContent = i;
       }
 
-      // clique: se livre -> pedir nome; se ocupado -> editar / remover
       div.addEventListener('click', () => {
         const key = String(i);
         if (!div.classList.contains('selecionado')) {
           const nome = prompt(`Digite o nome da pessoa que comprou o nº ${i}:`);
-          if (nome === null) return; // cancelou
+          if (nome === null) return;
           const trimmed = nome.trim();
           if (trimmed === '') {
             alert('Nome vazio. Operação cancelada.');
@@ -127,13 +125,11 @@
           div.title = `Comprado por: ${trimmed}`;
           atualizarContador();
         } else {
-          // editar ou remover: prompt pré-preenchido com nome atual
           const atual = selecionados[key] || '';
           const novo = prompt(`Editar nome do nº ${i} (deixe vazio para REMOVER):`, atual);
-          if (novo === null) return; // cancelou
+          if (novo === null) return;
           const trimmed = novo.trim();
           if (trimmed === '') {
-            // remover (com confirmação)
             if (confirm(`Deseja remover o registro do número ${i}?`)) {
               delete selecionados[key];
               localStorage.setItem('rifaSelecionados', JSON.stringify(selecionados));
@@ -143,7 +139,6 @@
               atualizarContador();
             }
           } else {
-            // atualizar nome
             selecionados[key] = trimmed;
             localStorage.setItem('rifaSelecionados', JSON.stringify(selecionados));
             div.textContent = `${i} - ${trimmed}`;
@@ -172,7 +167,7 @@
       }
     });
 
-    // Exportar para TXT (nº - nome, ordenado)
+    // Exportar TXT
     btnExportar.addEventListener('click', () => {
       const keys = Object.keys(selecionados);
       if (keys.length === 0) {
@@ -205,6 +200,19 @@
       });
       atualizarContador();
     });
+
+    // Sortear ganhador
+    function sortearGanhador() {
+      const keys = Object.keys(selecionados);
+      if (keys.length === 0) {
+        alert('Nenhum número foi selecionado ainda!');
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * keys.length);
+      const numero = keys[randomIndex];
+      const nome = selecionados[numero];
+      alert(`🎉 O ganhador é:\n\nNº ${numero} - ${nome}`);
+    }
   </script>
 </body>
 </html>
